@@ -261,7 +261,7 @@ local function export_card(no_subs)
     return true;
 end
 
-function quick_extract_audio()
+local function quick_extract_audio()
     local time_pos = mp.get_property_number("time-pos");
     local lookback_pos = time_pos - config["audio_lookback_length"];
     if(lookback_pos < 0) then
@@ -297,7 +297,7 @@ function quick_extract_audio()
 end
 
 -- TODO: snapshot timing on keypress for ab loops
-function audio_export_ab_loop()
+local function audio_export_ab_loop()
     local a_point = mp.get_property("ab-loop-a");
     if("no" == a_point) then
         return false, "No A-B loop selected";
