@@ -16,7 +16,7 @@ local config = {
     ---------------
     -- Snapshots --
     ---------------
-    ["snapshot_width"] = 160,           -- Width of snapshot. -1 for defualt (160).
+    ["snapshot_width"] = 160,           -- Width of snapshot. -1 for default (160).
     ["snapshot_height"] = 160,          -- Height of snapshot. -1 for default (160).
     
     -- If true, the snapshot will be taken at the subtitle start time pos.
