@@ -75,7 +75,7 @@ local config = {
 -- They can be changed within your own config using the key names.
 -- If the value of any of these are set to -1, they are ignored and not registered as key binds.
 config.keybinds = {
-    ["suketto_export_subtitle"]             = "b", -- Default key to extract a subtitle and it's audio.
+    ["suketto_export_subtitle"]             = "b", -- Default key to extract a subtitle and its audio.
     ["suketto_export_subtitle_media_only"]  = "B", -- Extract audio and snapshot with CSV format but without the subtitle text.
 
     ["suketto_audio_export_selection"]      = "n", -- Export the current AB loop
