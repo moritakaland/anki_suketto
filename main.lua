@@ -223,7 +223,7 @@ local function export_card(no_subs)
     end
     
     -- Export MP3 file
-    sub_start = sub_start + config["audio_pad_start"] or 0;
+    sub_start = sub_start - config["audio_pad_start"] or 0;
     sub_end = sub_end + config["audio_pad_end"] or 0;
     success, err = encode_mp3(
         join_path(config["card_media_path"], filename),
