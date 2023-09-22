@@ -16,7 +16,7 @@ local config = {
     ---------------
     -- Snapshots --
     ---------------
-    ["snapshot_width"] = 160,           -- Width of snapshot.  -1 for default (160).
+    ["snapshot_width"] = 240,           -- Width of snapshot.  -1 for default (240).
     ["snapshot_height"] = 160,          -- Height of snapshot. -1 for default (160).
     
     -- If true, the snapshot will be taken at the subtitle start time pos.
@@ -65,14 +65,13 @@ local config = {
     -- audio_export_snapshot_path:  If snapshots for quick exports or ab loops are enabled, they will be
     --                              placed in this directory. These are kept seperate from card exports.
     ["audio_export_snapshot_path"]  = join_path(mp.get_script_directory(), "audio_clip_snapshots"),
-
 };
 
 --------------
 -- Keybinds --
 --------------
--- These are only the DEFAULTS of the key binds.
--- They can be changed within your own config using the key names.
+-- These the default key binds.
+-- They can be changed within your own mpv config using the key names.
 -- If the value of any of these are set to -1, they are ignored and not registered as key binds.
 config.keybinds = {
     ["suketto_export_subtitle"]             = "b", -- Default key to extract a subtitle and its audio.
@@ -81,7 +80,7 @@ config.keybinds = {
     ["suketto_audio_export_selection"]      = "n", -- Export the current AB loop
     ["suketto_quick_export_audio"]          = "N", -- Default key to quick clip audio.
 };
- 
+
 local function trim_whitespace(str)
     return string.match(str, "^%s*(.-)%s*$");
 end
@@ -98,6 +97,10 @@ local function strip_extension(path)
     return path;
 end
 
+local function get_title()
+    return sanitize_title(strip_extension(mp.get_property("filename/no-ext")));
+end
+
 local function format_time(time)
     local timestamp = time or mp.get_property_number("time-pos");
     return string.format("%02d_%02d_%02d_%03d",
@@ -108,8 +111,10 @@ local function format_time(time)
     );
 end
 
-local function get_title()
-    return sanitize_title(strip_extension(mp.get_property("filename/no-ext")));
+local function format_filename(format, ...)
+    local args = {...};
+    local filename = string.format(format, get_title(), unpack(args));
+    return string.gsub(filename, "[/\\|<>?:\"*]", "");
 end
 
 local function get_active_sub()
@@ -199,16 +204,27 @@ local function encode_png(path, pos_start, width, height)
     return path;
 end
 
+local function calc_padded_time_pos(time_start, time_end)
+    time_start = time_start - config["audio_pad_start"] or 0;
+    time_end = time_end + config["audio_pad_end"] or 0;
+    return time_start, time_end;
+end
+
 local function export_card(no_subs)
-    -- Get active subtitle to extract
     local sub_text, sub_start, sub_end = get_active_sub();
     if(not sub_text) then
         return false, sub_start;
     end
     
-    local time_pos = config["snapshot_on_subtitle_start"] and sub_start or mp.get_property_number("time-pos");
-    local filename = string.format("%s_%s", get_title(), format_time(time_pos));
-    filename:gsub("[/\\|<>?:\"*]", "");
+    local time_pos = mp.get_property_number("time-pos");
+    if(config["snapshot_on_subtitle_start"]) then
+        time_pos = sub_start;
+    end
+    
+    local filename = format_filename("%s_%s", time_pos);
+
+    --local filename = string.format("%s_%s", get_title(), format_time(time_pos));
+    --filename:gsub("[/\\|<>?:\"*]", "");
     
     -- Export PNG file
     local success, err = encode_png(
@@ -222,9 +238,9 @@ local function export_card(no_subs)
         return false, err;
     end
     
+    sub_start, sub_end = calc_padded_time_pos(sub_start, sub_end);
+
     -- Export MP3 file
-    sub_start = sub_start - config["audio_pad_start"] or 0;
-    sub_end = sub_end + config["audio_pad_end"] or 0;
     success, err = encode_mp3(
         join_path(config["card_media_path"], filename),
         sub_start,
@@ -268,14 +284,15 @@ local function quick_extract_audio()
         lookback_pos = 0;
     end
 
-    local filename = string.format("%s_%s_%s", get_title(), format_time(lookback_pos), format_time(time_pos));
+    --local filename = string.format("%s_%s_%s", get_title(), format_time(lookback_pos), format_time(time_pos));
+    local filename = format_filename("%s_%s_%s", format_time(lookback_pos), format_time(time_pos));
     local success, err = encode_mp3(
         join_path(config["audio_export_path"], filename),
         lookback_pos,
         time_pos
     );
 
-    if(not success) then
+    if(false == success) then
         return false, err;
     end
     
@@ -308,9 +325,8 @@ local function audio_export_ab_loop()
         return false, "No B point selected";
     end
 
-    a_point, b_point = mp.get_property_number("ab-loop-a"), mp.get_property_number("ab-loop-b");
+    --a_point, b_point = mp.get_property_number("ab-loop-a"), mp.get_property_number("ab-loop-b"); // Why is this being called again after the above checks?
     if(b_point <= a_point) then
-        -- mpv is actually smart about this. I am too lazy to be smart.
         return false, "Invalid A-B loop timing. B must come after A.";
     end
 
@@ -318,14 +334,15 @@ local function audio_export_ab_loop()
         return false, "A-B loop must be 1 second or longer.";
     end
 
-    local filename = string.format("%s_%s_%s", get_title(), format_time(a_point), format_time(b_point));
+    --local filename = string.format("%s_%s_%s", get_title(), format_time(a_point), format_time(b_point));
+    local filename = format_filename("%s_%s_%s", format_time(a_point), format_time(b_point));
     local success, err = encode_mp3(
         join_path(config["audio_export_path"], filename),
         a_point,
         b_point
     );
 
-    if(not success) then
+    if(false == success) then
         return false, err;
     end
 
