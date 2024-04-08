@@ -84,11 +84,11 @@ local config = {
 -----------------------
 -- Utility Functions --
 -----------------------
-function trim_whitespace(str)
+local function trim_whitespace(str)
     return string.match(str, "^%s*(.-)%s*$");
 end
 
-function strip_extension(path)
+local function strip_extension(path)
     local i = path:match(".+()%.%w+$");
     if(i) then
         return path:sub(1, i-1);
@@ -96,7 +96,7 @@ function strip_extension(path)
     return path;
 end
 
-function format_time(time)
+local function format_time(time)
     local timestamp = time or mp.get_property_number("time-pos");
     return string.format("%02d_%02d_%02d_%03d",
         timestamp/3600,
@@ -106,11 +106,11 @@ function format_time(time)
     );
 end
 
-function sanitize_title(str)
+local function sanitize_title(str)
     return string.gsub(trim_whitespace(str:gsub("%b()", ""):gsub("%b[]", "")), "%s+", "_");
 end
 
-function get_title()
+local function get_title()
     return sanitize_title(strip_extension(mp.get_property("filename/no-ext")));
 end
 
