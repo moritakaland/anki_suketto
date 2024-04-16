@@ -3,7 +3,7 @@ local io = io;
 local string = string;
 
 local path_separator = os.getenv("HOME") ~= nil and '/' or '\\';
-function join_path(p1, p2)
+local function join_path(p1, p2)
     p1 = string.gsub(p1, "$"..path_separator, "");
     p2 = string.gsub(p2, "$"..path_separator, "");
     return p1..path_separator..p2;
